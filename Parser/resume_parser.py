@@ -8,11 +8,11 @@ import io
 
 api_key = None
 google_vision_api_key = None
-CONFIG_PATH = "D:/ai_screen/Parser/config.yaml"
+CONFIG_PATH = "C:/Users/moham/OneDrive/Desktop/Ai resume/Backend M/New folder/AI_Backend/AI_Screen/Parser/config.yaml"
 
 with open(CONFIG_PATH) as file:
     data = yaml.load(file, Loader=yaml.FullLoader)
-    api_key = data.get("GROQ_API_KEY") or data.get("OPENAI_API_KEY")  # Support both key names
+    api_key = data.get("API_KEY") or data.get("OPENAI_API_KEY")  # Support both key names
     google_vision_api_key = data.get("GOOGLE_VISION_API_KEY")
 
 
