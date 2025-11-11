@@ -21,20 +21,22 @@ class ParseResumeResponse(BaseModel):
     filename: str
     resume_text_length: int
     extracted_data: Dict[str, Any]
-    message: str
+    # message: str
 
 
-class ExtractKeysResponse(BaseModel):
-    """Response model for key extraction."""
-    status: str
-    key_categories: Dict[str, Any]
-    message: str
+
 
 
 class GenerateQuestionsResponse(BaseModel):
     """Response model for question generation."""
     status: str
     questions: Dict[str, Any]
+    message: str
+
+class ExtractKeysResponse(BaseModel):
+    """Response model for key extraction."""
+    status: str
+    key_categories: Dict[str, Any]
     message: str
 
 
@@ -53,4 +55,12 @@ class FullPipelineResponse(BaseModel):
     pipeline_results: PipelineResults
     message: str
 
+# from pydantic import BaseModel
+# from datetime import datetime
+
+# class Resume(BaseModel):
+#     id: str
+#     file_name: str
+#     file_path: str
+#     uploaded_at: datetime
 
