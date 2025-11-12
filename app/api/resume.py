@@ -246,17 +246,17 @@ async def extract_keys(file_id: str):
 
 
 
-@router.post("/generate-questions", response_model=GenerateQuestionsResponse)
-async def generate_questions(request: GenerateQuestionsRequest):
+@router.post("/generate-questions/{file_id}", response_model=GenerateQuestionsResponse)
+async def generate_questions(file_id: str):
     """
-    Generate topic-wise interview questions based on key categories.
-    
-    - **key_categories**: JSON string or dict from the extract_keys endpoint
+    Generate topic-wise interview questions based on stored key categories
+    from the parsed_resumes table.
     """
     try:
-        return resume_service.generate_questions(request.key_categories)
+        return resume_service.generate_questions(file_id=file_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating questions: {str(e)}")
+
 
 
 @router.post("/full-pipeline", response_model=FullPipelineResponse)

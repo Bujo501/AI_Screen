@@ -264,10 +264,3 @@ def topicwise_questions(key_words):
     return questions_ontopic
 
 
-
-if __name__ == "__main__":
-    pdf_path = r"resume_fullstack.pdf"
-    resume_text = extract_text_from_pdf(pdf_path)
-    extracted_info = ats_extractor(resume_text)
-    key_extract = key_extraction(extracted_info)
-    questions = topicwise_questions(key_extract)
