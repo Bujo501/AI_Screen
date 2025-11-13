@@ -64,3 +64,54 @@ class FullPipelineResponse(BaseModel):
 #     file_path: str
 #     uploaded_at: datetime
 
+from datetime import datetime
+from typing import List, Optional
+
+
+
+class JobDescriptionCreate(BaseModel):
+    """Request model for adding a job description."""
+    title: str
+    comapny_branch: Optional[str] = None
+    description: str
+    required_skills: Optional[Dict[str, Any]] = None
+
+class JobDescriptionResponse(BaseModel):
+    """Response model for a job description."""
+    job_id: str
+    title: str
+    description: str
+    required_skills: Optional[Dict[str, Any]] = None
+    created_at: datetime
+
+
+# ===========================
+# ⚖️ RESUME–JOB COMPARISON SCHEMAS
+# ===========================
+
+class ComparisonResult(BaseModel):
+    """AI comparison result structure."""
+    match_percentage: int
+    matching_skills: List[str]
+    missing_skills: List[str]
+    summary: str
+
+
+class ResumeJobComparisonResponse(BaseModel):
+    """Response model for /resume/compare endpoint."""
+    status: str
+    file_id: str
+    job_id: str
+    comparison_result: ComparisonResult
+
+
+class ResumeJobComparisonDB(BaseModel):
+    """Database record model for stored comparison results."""
+    comparison_id: str
+    resume_id: str
+    job_id: str
+    match_percentage: int
+    matching_skills: List[str]
+    missing_skills: List[str]
+    summary: str
+    compared_at: datetime

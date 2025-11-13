@@ -274,3 +274,20 @@ async def full_pipeline(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error in pipeline: {str(e)}")
 
+
+#COMPARING JOBS
+@router.post("/compare/{parsed_file_id}/{job_id}")
+async def compare_resume_job(parsed_file_id: str, job_id: str):
+    """
+    Compare a candidate's parsed resume against a job description.
+    Returns matching score, matching/missing skills, and a summary.
+    """
+    try:
+        result = await resume_service.compare_resume_with_job(parsed_file_id, job_id)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error comparing resume and job: {str(e)}")
+
+

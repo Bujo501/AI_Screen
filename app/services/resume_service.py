@@ -124,20 +124,11 @@ class ResumeService:
                     os.unlink(tmp_file_path)
             except Exception:
                 pass
-
     def extract_keys(self, extracted_data: dict, resume_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Extract key categories (AI-based) from parsed resume data and optionally save to DB.
-
-        Args:
-            extracted_data: Parsed resume data (dict or JSON string)
-            resume_id: Optional resume ID to update in DB. If not provided, DB update is skipped.
-
-        Returns:
-            dict with status and extracted key categories.
         """
         try:
-            # Normalize input to string for the LLM
             if isinstance(extracted_data, (dict, list)):
                 input_data = json.dumps(extracted_data, indent=2)
             else:
@@ -148,50 +139,40 @@ class ResumeService:
 
             key_data_raw = self.parser_service.extract_key_categories(input_data)
 
-            # ✅ Handle both dict and string cases safely
+            # ✅ Clean the raw AI response
             if isinstance(key_data_raw, (dict, list)):
                 key_data = key_data_raw
             else:
-                # Clean LLM response if it's a string
-                cleaned = re.sub(r"<think>.*?</think>", "", key_data_raw, flags=re.DOTALL)
+                cleaned = re.sub(r"<think>.*?</think>", "", key_data_raw, flags=re.DOTALL)  # remove reasoning
                 cleaned = cleaned.replace("```json", "").replace("```", "").strip()
 
-                # Extract only JSON portion (ignore text outside braces)
+                # Extract only JSON portion
                 match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", cleaned)
                 if match:
-                    cleaned_json = match.group(0)
-                    key_data = json.loads(cleaned_json)
+                    key_data = json.loads(match.group(0))
                 else:
                     key_data = parse_json_response(cleaned)
 
-            # ✅ Optionally save into DB
+            # ✅ Optionally save to DB
             if resume_id:
                 conn = get_connection()
-                if conn is None:
-                    raise HTTPException(status_code=500, detail="Database connection not available")
-
                 cursor = conn.cursor()
-                try:
-                    cursor.execute("""
-                        UPDATE parsed_resumes
-                        SET extracted_keys = %s,
-                            parsed_at = NOW()
-                        WHERE resume_id = %s
-                    """, (json.dumps(key_data, ensure_ascii=False, indent=2), resume_id))
-                    conn.commit()
-                finally:
-                    cursor.close()
-                    conn.close()
+                cursor.execute("""
+                    UPDATE parsed_resumes
+                    SET extracted_keys = %s,
+                        parsed_at = NOW()
+                    WHERE resume_id = %s
+                """, (json.dumps(key_data, ensure_ascii=False, indent=2), resume_id))
+                conn.commit()
+                cursor.close()
+                conn.close()
 
-            # ✅ Return clean JSON response
             return {
                 "status": "success",
                 "key_categories": key_data,
                 "message": "Key categories extracted" + (" and saved to DB" if resume_id else "")
             }
 
-        except HTTPException:
-            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error extracting and saving key categories: {str(e)}")
 
@@ -265,22 +246,48 @@ class ResumeService:
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error generating questions: {str(e)}")
+        
+    
+    def generate_questions_from_key_categories(self, key_categories: dict) -> Dict[str, Any]:
+        """
+        Generate interview questions directly from extracted key categories.
+        This avoids using the database and works purely in-memory (for the pipeline).
+        """
+        try:
+            # ✅ Convert dict to JSON string for LLM
+            inp = json.dumps(key_categories, indent=2)
+
+            # ✅ Check if parser service is available
+            if not hasattr(self.parser_service, "generate_questions"):
+                raise RuntimeError("ParserService.generate_questions not available")
+
+            # ✅ Send data to LLM
+            result = self.parser_service.generate_questions(inp)
+
+            # ✅ Handle result (dict or string)
+            if isinstance(result, (dict, list)):
+                parsed = result
+            else:
+                cleaned = re.sub(r"<think>.*?</think>", "", str(result), flags=re.DOTALL)
+                cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+
+                match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", cleaned)
+                if match:
+                    parsed = json.loads(match.group(0))
+                else:
+                    parsed = parse_json_response(cleaned)
+
+            return parsed
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error generating questions: {str(e)}")
+
 
     
     async def full_pipeline(self, file: UploadFile) -> Dict[str, Any]:
         """
         Complete pipeline: Parse → Extract Keys → Generate Questions.
-
-        Args:
-            file: Uploaded PDF or image file
-
-        Returns:
-            Dictionary with all pipeline results
-
-        Raises:
-            HTTPException: If file is not supported or processing fails
         """
-        # Validate extension
         file_ext = os.path.splitext(file.filename)[1].lower()
         supported_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
 
@@ -293,24 +300,24 @@ class ResumeService:
         suffix = file_ext if file_ext == '.pdf' else '.jpg'
         tmp_file_path = None
         try:
-            # Save uploaded file temporarily
+            # Step 1: Save uploaded file temporarily
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
                 tmp_file_path = tmp_file.name
                 content = await file.read()
                 tmp_file.write(content)
 
-            # Step 1: parse resume
+            # Step 2: Parse resume
             parsed = await self.parse_resume(tmp_file_path, file.filename)
 
-            # Step 2: extract keys (do not save to DB during full pipeline)
+            # Step 3: Extract key categories (AI)
             extracted_data = parsed.get("extracted_data")
             keys_result = self.extract_keys(extracted_data, resume_id=None)
 
-            # Step 3: generate questions
+            # Step 4: Generate interview questions directly from extracted data
             key_categories = keys_result.get("key_categories")
-            questions_parsed = generate_questions(self, key_categories)
+            questions_parsed = self.generate_questions_from_key_categories(key_categories)
 
-            # Return shape matches response model that expects 'message' and 'pipeline_results'
+            # ✅ Final structured output
             return {
                 "status": "success",
                 "filename": parsed.get("filename"),
@@ -318,11 +325,10 @@ class ResumeService:
                 "pipeline_results": {
                     "resume_text_length": parsed.get("resume_text_length"),
                     "extracted_data": parsed.get("extracted_data"),
-                    "key_categories": keys_result.get("key_categories"),
+                    "key_categories": key_categories,
                     "interview_questions": questions_parsed
                 }
             }
-
 
         except HTTPException:
             raise
@@ -336,3 +342,56 @@ class ResumeService:
                 pass
 
 
+    async def compare_resume_with_job(self, file_id: str, job_id: str):
+        """
+        Compare parsed resume data against a job description.
+        Returns a structured JSON response with match %, matching/missing skills, and summary.
+        """
+        try:
+            conn = get_connection()
+            if conn is None:
+                raise HTTPException(status_code=500, detail="Database connection not available")
+
+            cursor = conn.cursor(dictionary=True)
+
+            # ✅ Fetch parsed resume data
+            cursor.execute("SELECT extracted_keys FROM parsed_resumes WHERE resume_id = %s", (file_id,))
+            resume_row = cursor.fetchone()
+
+            # ✅ Fetch job description
+            cursor.execute("SELECT description FROM job_descriptions WHERE job_id = %s", (job_id,))
+            job_row = cursor.fetchone()
+
+            cursor.close()
+            conn.close()
+
+            if not resume_row or not resume_row.get("extracted_keys"):
+                raise HTTPException(status_code=404, detail="Parsed resume not found")
+
+            if not job_row:
+                raise HTTPException(status_code=404, detail="Job description not found")
+
+            resume_data = resume_row["extracted_keys"]
+            job_description = job_row["description"]
+
+            # ✅ Convert resume_data to JSON if needed
+            if isinstance(resume_data, str):
+                try:
+                    resume_data = json.loads(resume_data)
+                except json.JSONDecodeError:
+                    resume_data = parse_json_response(resume_data)
+
+            # ✅ Delegate to parser service for AI comparison
+            comparison_result = self.parser_service.compare_resume_to_job(job_description, resume_data)
+
+            return {
+                "status": "success",
+                "file_id": file_id,
+                "job_id": job_id,
+                "comparison_result": comparison_result
+            }
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error comparing resume and job: {str(e)}")
