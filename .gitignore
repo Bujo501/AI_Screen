@@ -1,0 +1,35 @@
+﻿# Python
+__pycache__/
+*.pyc
+venv/
+*.env
+.env
+
+# Node / React
+node_modules/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Configs that should NEVER be tracked
+config.yaml
+*.yaml
+Backend/Parser/config.yaml
+Backend/Parser/google_api.json
+
+# Credentials (ALL files inside this folder)
+Backend/credentials/
+Backend/credentials/*
+
+# IDE folders
+.vscode/
+.idea/
+
+# Sensitive JSON files
+*.json
+Backend/Parser/google_api.json
+Backend/Parser/google-api.json
+Backend/credentials/

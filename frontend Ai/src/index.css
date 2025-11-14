@@ -1,0 +1,18 @@
+/* filepath: src/index.css  <-- ensure these are at the top of this file */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* optional tokens used by the dashboard */
+@layer base {
+  :root { --card:#fff; --muted:#6b7280; --border:#e5e7eb; --bg:#f5f6f8; }
+  body { @apply bg-[var(--bg)] text-slate-900; }
+}
+@layer components {
+  .card { @apply bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-soft; }
+  .btn { @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium text-white bg-primary hover:brightness-95 disabled:opacity-60 disabled:cursor-not-allowed; }
+  .btn-ghost { @apply text-slate-700 bg-transparent hover:bg-slate-100 rounded-lg px-3 py-2; }
+  .btn-outline { @apply bg-white text-slate-900 border border-[var(--border)] rounded-xl px-3 py-2 hover:bg-slate-50; }
+  .input { @apply bg-white border border-[var(--border)] rounded-xl px-3 py-2 text-sm; }
+  .tag { @apply bg-slate-100 border border-[var(--border)] rounded-full px-3 py-1 text-xs text-slate-700; }
+}
