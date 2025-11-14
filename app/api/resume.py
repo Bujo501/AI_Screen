@@ -291,3 +291,60 @@ async def compare_resume_job(parsed_file_id: str, job_id: str):
         raise HTTPException(status_code=500, detail=f"Error comparing resume and job: {str(e)}")
 
 
+@router.post("/shortlisted_mail/{file_id}")
+async def send_interview_mail(file_id: str):
+    """
+    Send interview email to candidate fetched from database using resume_id.
+    """
+    try:
+        conn = get_connection()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="DB connection failed")
+
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch candidate email
+        cursor.execute("""
+            SELECT full_name, email_id 
+            FROM parsed_resumes 
+            WHERE resume_id = %s
+        """, (file_id,))
+
+        row = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not row or not row["email_id"]:
+            raise HTTPException(status_code=404, detail="Email not found for this resume ID")
+
+        full_name = row["full_name"]
+        email = row["email_id"]
+
+        # Send email
+        from app.services.gmail_service import GmailService
+        gmail = GmailService()
+
+        subject = "Interview Invitation"
+        message = f"""
+Hello {full_name},
+
+Congratulations! You have been shortlisted for the next round of the interview.
+
+Your interview is scheduled soon. We will share the meeting link and exact details shortly.
+
+Regards,
+HR Team
+"""
+
+        result = gmail.send_email(email, subject, message)
+
+        return {
+            "status": "success",
+            "file_id": file_id,
+            "sent_to": email,
+            "gmail_result": result
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
