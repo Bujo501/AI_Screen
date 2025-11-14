@@ -9,7 +9,7 @@ from app.core.utils import parse_json_response, convert_to_string
 
 api_key = None
 google_vision_api_key = None
-CONFIG_PATH = "D:/ai_screen/Parser/config.yaml"
+CONFIG_PATH = "D:/S2_REC/Parser/config.yaml"
 
 with open(CONFIG_PATH) as file:
     data = yaml.load(file, Loader=yaml.FullLoader)

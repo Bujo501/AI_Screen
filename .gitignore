@@ -29,3 +29,7 @@ uploads/
 # Sensitive configs
 Parser/config.yaml
 Parser/google_api.json
+
+credencials/
+credentials/gmail_credentials.json
+credentials/token.json
