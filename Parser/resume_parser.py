@@ -5,6 +5,7 @@ from google.cloud import vision
 from google.api_core import exceptions as google_exceptions
 import os
 import io
+from app.core.utils import parse_json_response, convert_to_string
 
 api_key = None
 google_vision_api_key = None
@@ -12,7 +13,7 @@ CONFIG_PATH = "D:/S2_REC/Parser/config.yaml"
 
 with open(CONFIG_PATH) as file:
     data = yaml.load(file, Loader=yaml.FullLoader)
-    api_key = data.get("API_KEY") or data.get("OPENAI_API_KEY")  # Support both key names
+    api_key = data.get("GROQ_API_KEY") 
     google_vision_api_key = data.get("GOOGLE_VISION_API_KEY")
 
 
@@ -159,8 +160,9 @@ def ats_extractor(resume_data):
     # ✅ Typo fix: should be response.choices (plural)
     data = response.choices[0].message.content
 
-    print(data)
+    # print(data)
     return data
+
 
 def key_extraction(key_categories):
     prompt = '''
@@ -206,8 +208,8 @@ def key_extraction(key_categories):
     key_data = response.choices[0].message.content
 
 
-    print(key_data)
-    return key_data
+    print("-------------------------------------------:",parse_json_response(key_data))
+    return parse_json_response(key_data)
 
 def topicwise_questions(key_words):
     prompt = '''
