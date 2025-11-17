@@ -6,7 +6,7 @@ def get_connection():
         connection = mysql.connector.connect(
             host="localhost",          # Your MySQL host
             user="root",               # Your MySQL username
-            password="Ayubsheik@1506",  # Your MySQL password
+            password="Airesume@s2",  # Your MySQL password
             database="testing1"   # Database name
         )
         if connection.is_connected():

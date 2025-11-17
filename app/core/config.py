@@ -17,10 +17,7 @@ APP_TITLE = "Resume Parser API"
 APP_DESCRIPTION = "API for parsing PDF resumes using Groq AI and generating interview questions."
 APP_VERSION = "1.0.0"
 
-# CORS Configuration (dev)
-CORS_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+# CORS Configuration
+CORS_ORIGINS = ["*"]  # In production, specify actual origins
+
+
