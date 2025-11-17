@@ -260,12 +260,20 @@ async def extract_keys(file_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error extracting keys: {str(e)}")
 
-@router.post("/generate-questions", response_model=GenerateQuestionsResponse)
-async def generate_questions(request: GenerateQuestionsRequest):
+
+
+@router.post("/generate-questions/{file_id}", response_model=GenerateQuestionsResponse)
+async def generate_questions(file_id: str):
+    """
+    Generate topic-wise interview questions based on stored key categories
+    from the parsed_resumes table.
+    """
     try:
-        return resume_service.generate_questions(request.key_categories)
+        return resume_service.generate_questions(file_id=file_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating questions: {str(e)}")
+
+
 
 @router.post("/full-pipeline", response_model=FullPipelineResponse)
 async def full_pipeline(file: UploadFile = File(...)):
@@ -345,6 +353,27 @@ async def list_parsed_resumes(
 async def create_parsed_resume(resume: ParsedResume) -> ResumeRecord:
     """
     Save a parsed resume directly (useful after /full-pipeline).
+
+#COMPARING JOBS
+@router.post("/compare/{parsed_file_id}/{job_id}")
+async def compare_resume_job(parsed_file_id: str, job_id: str):
+    """
+    Compare a candidate's parsed resume against a job description.
+    Returns matching score, matching/missing skills, and a summary.
+    """
+    try:
+        result = await resume_service.compare_resume_with_job(parsed_file_id, job_id)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error comparing resume and job: {str(e)}")
+
+
+@router.post("/shortlisted_mail/{file_id}")
+async def send_interview_mail(file_id: str):
+    """
+    Send interview email to candidate fetched from database using resume_id.
     """
     try:
         conn = get_connection()
@@ -399,3 +428,52 @@ async def create_parsed_resume(resume: ParsedResume) -> ResumeRecord:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating resume: {str(e)}")
+            raise HTTPException(status_code=500, detail="DB connection failed")
+
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch candidate email
+        cursor.execute("""
+            SELECT full_name, email_id 
+            FROM parsed_resumes 
+            WHERE resume_id = %s
+        """, (file_id,))
+
+        row = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not row or not row["email_id"]:
+            raise HTTPException(status_code=404, detail="Email not found for this resume ID")
+
+        full_name = row["full_name"]
+        email = row["email_id"]
+
+        # Send email
+        from app.services.gmail_service import GmailService
+        gmail = GmailService()
+
+        subject = "Interview Invitation"
+        message = f"""
+Hello {full_name},
+
+Congratulations! You have been shortlisted for the next round of the interview.
+
+Your interview is scheduled soon. We will share the meeting link and exact details shortly.
+
+Regards,
+HR Team
+"""
+
+        result = gmail.send_email(email, subject, message)
+
+        return {
+            "status": "success",
+            "file_id": file_id,
+            "sent_to": email,
+            "gmail_result": result
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")

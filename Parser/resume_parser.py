@@ -8,7 +8,7 @@ import io
 
 api_key = None
 google_vision_api_key = None
-CONFIG_PATH = "C:/Users/moham/OneDrive/Desktop/Ai resume/Backend M/New folder/AI_Backend/AI_Screen/Parser/config.yaml"
+CONFIG_PATH = "D:/S2_REC/Parser/config.yaml"
 
 with open(CONFIG_PATH) as file:
     data = yaml.load(file, Loader=yaml.FullLoader)
@@ -261,11 +261,53 @@ def topicwise_questions(key_words):
     print(questions_ontopic)
     return questions_ontopic
 
+@staticmethod
+def compare_resume_to_job(job_description: str, resume_data: dict) -> dict:
+    """
+    Compare resume content against a job description using Groq AI.
+    Returns match percentage, matching and missing skills, and a summary.
+    """
+    from groq import Groq
+    import re, json
+
+    client = Groq(api_key=api_key)
+
+    prompt = f"""
+    You are an expert HR recruiter.
+    Compare the following job description and resume data.
+
+    Job Description:
+    {job_description}
+
+    Resume Data:
+    {json.dumps(resume_data, indent=2)}
+
+    Return JSON only in the following format:
+    {{
+        "match_percentage": <integer 0-100>,
+        "matching_skills": ["skill1", "skill2", ...],
+        "missing_skills": ["skillA", "skillB", ...],
+        "summary": "Brief 2–3 line explanation of match quality."
+    }}
+    """
+
+    response = client.chat.completions.create(
+        model="qwen/qwen3-32b",
+        messages=[{"role": "system", "content": prompt}],
+        temperature=0.3,
+        max_tokens=800
+    )
+
+    result = response.choices[0].message.content
+
+    # ✅ Extract valid JSON from AI output
+    match = re.search(r"(\{[\s\S]*\})", result)
+    try:
+        parsed_result = json.loads(match.group(0)) if match else parse_json_response(result)
+    except Exception:
+        parsed_result = {"error": "Failed to parse AI response", "raw_output": result}
+
+    return parsed_result
 
 
-if __name__ == "__main__":
-    pdf_path = r"resume_fullstack.pdf"
-    resume_text = extract_text_from_pdf(pdf_path)
-    extracted_info = ats_extractor(resume_text)
-    key_extract = key_extraction(extracted_info)
-    questions = topicwise_questions(key_extract)
+

@@ -5,6 +5,7 @@
 Main API routes aggregator
 """
 from fastapi import APIRouter
+from app.api import resume, jobs, interview
 
 # import router objects
 from app.api.resume import router as resume_router   # resume router has no prefix
@@ -18,3 +19,7 @@ api_router.include_router(resume_router, prefix="/resume", tags=["Resume"])
 # IMPORTANT: don't add an extra prefix here; routers already have one
 api_router.include_router(jobs_router,   tags=["jobs"])
 api_router.include_router(match_router,  tags=["match"])
+# Include all route modules
+api_router.include_router(resume.router, prefix="/resume")
+api_router.include_router(jobs.router, prefix="/job")
+api_router.include_router(interview.router, prefix="/interview")

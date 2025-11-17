@@ -10,13 +10,14 @@ from app.core.config import PARSER_DIR
 sys.path.insert(0, str(PARSER_DIR))
 
 # Import parser functions
-from resume_parser import (
+from Parser.resume_parser import (
     extract_text_from_pdf,
     extract_text_from_image,
     extract_text_from_file,
     ats_extractor,
     key_extraction,
-    topicwise_questions
+    topicwise_questions,
+    compare_resume_to_job
 )
 
 
@@ -103,3 +104,55 @@ class ParserService:
         return topicwise_questions(key_categories)
 
 
+    @staticmethod
+    def compare_resume_to_job(job_description: str, resume_data: dict) -> dict:
+        """
+        Compare a resume's key categories against a job description using Groq AI.
+        Returns match percentage, matching/missing skills, and a summary.
+        """
+        import json, re
+        from groq import Groq
+
+        # ✅ Load Groq API key (already set in resume_parser)
+        from Parser.resume_parser import api_key  
+
+        client = Groq(api_key=api_key)
+
+        prompt = f"""
+        You are an expert HR recruiter.
+        Compare the following job description and resume data.
+
+        Job Description:
+        {job_description}
+
+        Resume Data:
+        {json.dumps(resume_data, indent=2)}
+
+        Return valid JSON with this structure only:
+        {{
+          "match_percentage": <integer 0-100>,
+          "matching_skills": ["skill1", "skill2", ...],
+          "missing_skills": ["skillA", "skillB", ...],
+          "summary": "Brief, professional summary of the match quality (2–3 lines)."
+        }}
+        """
+
+        try:
+            response = client.chat.completions.create(
+                model="qwen/qwen3-32b",
+                messages=[{"role": "system", "content": prompt}],
+                temperature=0.2,
+                max_tokens=800
+            )
+
+            result = response.choices[0].message.content
+
+            # ✅ Extract valid JSON only
+            match = re.search(r"(\{[\s\S]*\})", result)
+            if match:
+                return json.loads(match.group(0))
+            else:
+                return {"error": "Could not parse AI response", "raw_output": result}
+
+        except Exception as e:
+            return {"error": f"AI comparison failed: {str(e)}"}
