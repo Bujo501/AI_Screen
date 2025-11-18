@@ -1,0 +1,165 @@
+[
+  {
+    "id": "fcbab7c8-4825-42be-ad0b-7e2a6103f0fa",
+    "title": "Java developer",
+    "must_have_skills": [
+      "html/css",
+      "javascript",
+      "sql",
+      "java",
+      "react",
+      "node.js",
+      "express.js",
+      "bootstrap",
+      "redux"
+    ],
+    "nice_to_have_skills": [],
+    "min_years_experience": 0.0,
+    "required_education": 3,
+    "description": "Leadership"
+  },
+  {
+    "id": "dbf01b58-7ce9-44e3-9e63-33cba8247ce6",
+    "title": "Data Analyst",
+    "must_have_skills": [
+      "python",
+      "sql",
+      "pandas",
+      "numpy",
+      "machine learing",
+      "powerbi",
+      "matlab",
+      "deep learning"
+    ],
+    "nice_to_have_skills": [
+      "aws gwthub"
+    ],
+    "min_years_experience": 1.0,
+    "required_education": 3,
+    "description": ""
+  },
+  {
+    "id": "2d8af554-061d-4721-92de-19162f21d111",
+    "title": "Jawa developer",
+    "must_have_skills": [
+      "html",
+      "css",
+      "javascript",
+      "react",
+      "angular"
+    ],
+    "nice_to_have_skills": [
+      "aws",
+      "azure",
+      "google cloud"
+    ],
+    "min_years_experience": 0.0,
+    "required_education": 3,
+    "description": ""
+  },
+  {
+    "id": "842a8fcc-7634-435a-92fb-3631ec61164d",
+    "title": "Data Analyst",
+    "must_have_skills": [
+      "sql",
+      "nosql​",
+      "python (or r) programming​",
+      "statistics",
+      "probability​",
+      "data cleaning",
+      "wrangling​",
+      "data visualization (tableau",
+      "powerbi",
+      "excel)​",
+      "machine learning basics​",
+      "business intelligence tools​",
+      "analytical",
+      "critical thinking​",
+      "communication skills​",
+      "attention to detail",
+      "teamwork​"
+    ],
+    "nice_to_have_skills": [],
+    "min_years_experience": 0.0,
+    "required_education": 3,
+    "description": ""
+  },
+  {
+    "id": "00422bed-64ce-4bea-b470-d4f8e34abbfc",
+    "title": "SAP ABAP",
+    "must_have_skills": [
+      "core abap programming​",
+      "object-oriented abap (abap oo)​",
+      "sap s/4hana",
+      "abap on hana​",
+      "open sql",
+      "database access​",
+      "alv report development​",
+      "smart forms/sap scripts​",
+      "data migration tools (bdc",
+      "lsmw)​",
+      "enhancements",
+      "user exits",
+      "badis​",
+      "module pool programming (dialog programming)​",
+      "performance tuning & debugging​",
+      "fiori/ui5",
+      "odata services​",
+      "sap netweaver",
+      "eclipse adt usage​",
+      "restful abap/rap​",
+      "integration (idocs",
+      "bapis",
+      "rfc)​",
+      "communication",
+      "problem-solving skills"
+    ],
+    "nice_to_have_skills": [],
+    "min_years_experience": 0.0,
+    "required_education": 3,
+    "description": ""
+  },
+  {
+    "id": "c091db13-bee8-4ce8-9d0e-7428818aff8f",
+    "title": "SAP Ariba",
+    "must_have_skills": [
+      "procurement process expertise (requisition",
+      "purchase orders",
+      "invoicing)​",
+      "sap ariba sourcing (supplier negotiations",
+      "sourcing activities",
+      "supplier bidding)​",
+      "contract lifecycle management (authoring",
+      "approvals",
+      "compliance)​",
+      "supplier management",
+      "supplier performance monitoring​",
+      "spend analysis",
+      "data-driven reporting​",
+      "integration with sap s/4hana/erp",
+      "middleware/api usage​",
+      "supply chain collaboration (scc)​",
+      "risk",
+      "compliance management​",
+      "ariba network platform proficiency​",
+      "communication",
+      "process optimization",
+      "adaptability​"
+    ],
+    "nice_to_have_skills": [],
+    "min_years_experience": 0.0,
+    "required_education": 3,
+    "description": ""
+  },
+  {
+    "id": "13e6f3cf-1356-4d09-b9f8-d2c016932197",
+    "title": "jawa developer",
+    "must_have_skills": [
+      "react"
+    ],
+    "nice_to_have_skills": [],
+    "min_years_experience": 0.0,
+    "required_education": 3,
+    "description": ""
+  }
+]
